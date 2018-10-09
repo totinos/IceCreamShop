@@ -85,6 +85,40 @@ class SHOP:
                 return 0;
 
         return probability;
+    
+    # get list of all states that you could transition to given a starting state and an optional action
+    # state (tuple) is the starting state
+    # action (int) is the action taken in that state (if none, iterate over transitions for all posible actions)
+    # returns a list of all states that can be reached from the the given start state and action(s)
+    # note: does not currently account for boundary cases if probability of someone joining a queue is 0 or 1 (so it includes some transitions that are impossible),
+    # but if used in conjuction with transition_probability(), it will find that probability of transitioning to those states is 0%
+    def state_transitions(self, state, action=None):
+        possible_states = list();
+        
+        actions = [];
+        if action is None:
+            actions = self.actions;
+        else:
+            actions = [action];
+
+        for a in actions:
+            for i in range(0, int(2 ** self.num_queues)):
+                next_state = list(state);
+                if next_state[a] > 0:
+                    next_state[a] -= 1;
+                
+                for q in range(0, self.num_queues):
+                    person_arrives = i % 2;
+                    if person_arrives and state[q] < self.queue_capacity:
+                        next_state[q] += 1;
+                    i = int(i / 2);
+
+                state_tuple = tuple(next_state);
+                if state_tuple not in possible_states:
+                    possible_states.append(state_tuple);
+        
+        return possible_states;
+                
 
 if __name__ == '__main__':
 
