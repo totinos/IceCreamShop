@@ -58,7 +58,7 @@ class SHOP:
         
         for q in state:
             if q != a and state[q] == self.queue_capacity:
-                reward -= 5 * self.queue_probs[q]
+                reward -= self.leave_loss * self.queue_probs[q]
         
         return reward
 
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     queue_capacity = int(sys.argv[1])
     num_queues = int(sys.argv[2])
     scoop_cost = int(sys.argv[3])
-    leave_loss = int(sys.argv[4])
+    leave_loss = abs(int(sys.argv[4]))
     queue_probs = np.array([float(sys.argv[x]) for x in range(5, len(sys.argv)-1)])
     iter_type = int(sys.argv[len(sys.argv)-1]) # policy or value iteration
 
