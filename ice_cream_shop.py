@@ -29,8 +29,8 @@ class SHOP:
         for i in range(0, (queue_capacity+1) ** num_queues):
             queue_lengths = [0 for x in range(0, num_queues)]
             for q in range(0, num_queues):
-                queue_lengths[q] = i % queue_capacity
-                i = int(i / queue_capacity)
+                queue_lengths[q] = i % (queue_capacity+1)
+                i = int(i / (queue_capacity+1))
             print(queue_lengths)
             self.state_values[tuple(queue_lengths)] = 0        # state value initialized to 0
 
