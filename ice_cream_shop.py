@@ -118,6 +118,14 @@ class SHOP:
                     possible_states.append(state_tuple)
         
         return possible_states
+
+    # Alex
+    def value_iteration(self):
+        return
+
+    # Sam
+    def policy_iteration(self):
+        return
                 
 
 if __name__ == '__main__':
