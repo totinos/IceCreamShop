@@ -26,8 +26,8 @@ class SHOP:
         # and then convert to a tuple. 
         # We enumerate to create every possible state by finding every combination of how many
         # people are waiting in each queue 
-        for i in range(0, queue_capacity ** num_queues):
-            queue_lengths = [0 for x in range(0, queue_capacity)]
+        for i in range(0, (queue_capacity+1) ** num_queues):
+            queue_lengths = [0 for x in range(0, num_queues)]
             for q in range(0, num_queues):
                 queue_lengths[q] = i % queue_capacity
                 i = int(i / queue_capacity)
