@@ -83,15 +83,22 @@ class SHOP:
         # for each queue, if someone joins that queue, multiply probability by chance of someone joining queue,
         # else if no one joines that queue, mulitply by (1 - chance of person joining that queue)
         for q in range(0, self.num_queues):
-            if (end_state[q] > start_state[q]) or ((start_state[q] != 0) and (action == q) and (end_state[q] == start_state[q])):
+
+            # if queue is full and not removing a person from it, then no matter what, the queue will remain the same 
+            if (start_state[q] == self.queue_capacity and q != action):
+                probability *= 1.0
+            # if a person joined the queue (queue length increases when queue not served, 
+            # or queue length stays same when it was served, excluding when the queue started as empty)
+            elif (end_state[q] > start_state[q]) or ((start_state[q] != 0) and (action == q) and (end_state[q] == start_state[q])):
                 probability *= self.queue_probs[q]
+            # no one joined the queue
             else:
                 probability *= (1.0 - self.queue_probs[q])
 
             # account for if transition is not possible (probability = 0)
             # i.e. ending qeuue has fewer people than before (and it was not the one served) or was served and drops by more than 1 person
             # or a random queue adds more than one person to it
-            if (end_state[q] < start_state[q] and q != action) or (end_state[q] < start_state[q] - 1) or (end_state[q] > start_state[q] + 1):
+            if (end_state[q] < start_state[q] and q != action) or (end_state[q] < start_state[q] - 1) or (end_state[q] > start_state[q] + 1) or start_state[q] > self.queue_capacity or end_state[q] > self.queue_capacity:
 
                 # print a debug message because this would probably indicate a bug in the code
                 print("transition from state", start_state, "to state", end_state, "is not possible")
@@ -132,12 +139,26 @@ class SHOP:
         
         return possible_states
 
+    # print all the transitions that can occur from each state and their probabilities
+    # for debugging purposes
+    def print_transitions(self):
+        for s in self.state_values.keys():
+            for a in self.actions:
+                transitions = self.state_transitions(s, a)
+                
+                print("state", s, "action", a)
+
+                for s2 in transitions:
+                    p = self.transition_probability(s, s2, a)
+                    print("\t", s, "->", s2, "= ", p)
+    
+    
     # Alex
     def value_iteration(self):
         # iterate some arbitrarily large number of times (for now)
         for i in range(0, 10000):
             # for each state
-            for s in self.state_values:
+            for s in self.state_values.key():
                 return_per_action = []
                 for a in self.actions:
                     transitions = self.state_transitions(s, a)
@@ -187,5 +208,6 @@ if __name__ == '__main__':
         shop = SHOP(queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs)
     
     shop.print_shop()
+    shop.print_transitions()
     shop.value_iteration()
 
