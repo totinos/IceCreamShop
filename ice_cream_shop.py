@@ -16,6 +16,7 @@ class SHOP:
         self.scoop_cost = scoop_cost
         self.leave_loss = leave_loss
         self.queue_probs = queue_probs
+        self.discount_factor = 0.9
         
         # initialize state value function
         self.state_values = dict()
@@ -56,7 +57,8 @@ class SHOP:
         if (state[action] > 0):
             reward += 1
         
-        for q in state:
+        # for each queue in the state
+        for q in range(0, len(state)):
             if q != action and state[q] == self.queue_capacity:
                 reward -= self.leave_loss * self.queue_probs[q]
         
@@ -121,6 +123,25 @@ class SHOP:
 
     # Alex
     def value_iteration(self):
+        # iterate some arbitrarily large number of times (for now)
+        for i in range(0, 1000):
+            # for each state
+            for s in self.state_values:
+                return_per_action = []
+                for a in self.actions:
+                    transitions = self.state_transitions(s, a)
+                    expected_reward = 0
+                    for s2 in transitions:
+                        p = self.transition_probability(s, s2, a)
+                        r = self.reward(s, a)
+                        v2 = self.state_values[s2]
+                        expected_reward += p * (r + v2 * self.discount_factor)
+                    return_per_action.append(expected_reward)
+                self.state_values[s] = max(return_per_action)
+        
+        for s, v in self.state_values.items():
+            print(s, ": ", v)
+
         return
 
     # Sam
@@ -149,5 +170,5 @@ if __name__ == '__main__':
         shop = SHOP(queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs)
     
     shop.print_shop()
-
+    shop.value_iteration()
 
