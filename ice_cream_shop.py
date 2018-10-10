@@ -83,7 +83,7 @@ class SHOP:
         # for each queue, if someone joins that queue, multiply probability by chance of someone joining queue,
         # else if no one joines that queue, mulitply by (1 - chance of person joining that queue)
         for q in range(0, self.num_queues):
-            if end_state[q] > start_state[q] or (action == q and end_state[q] == start_state[q]):
+            if (end_state[q] > start_state[q]) or ((start_state[q] != 0) and (action == q) and (end_state[q] == start_state[q])):
                 probability *= self.queue_probs[q]
             else:
                 probability *= (1.0 - self.queue_probs[q])
@@ -122,7 +122,7 @@ class SHOP:
                 
                 for q in range(0, self.num_queues):
                     person_arrives = i % 2
-                    if person_arrives and state[q] < self.queue_capacity:
+                    if person_arrives and next_state[q] < self.queue_capacity:
                         next_state[q] += 1
                     i = int(i / 2)
 
