@@ -10,7 +10,7 @@ import numpy as np
 
 class SHOP:
 
-    def __init__(self, queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs):
+    def __init__(self, queue_capacity=8, num_queues=2, scoop_cost=1, leave_loss=5, queue_probs=(0.3, 0.6)):
         self.queue_capacity = queue_capacity
         self.num_queues = num_queues
         self.scoop_cost = scoop_cost
@@ -57,7 +57,7 @@ class SHOP:
             reward += 1
         
         for q in state:
-            if q != a and state[q] == self.queue_capacity:
+            if q != action and state[q] == self.queue_capacity:
                 reward -= self.leave_loss * self.queue_probs[q]
         
         return reward
@@ -78,7 +78,7 @@ class SHOP:
             # account for if transition is not possible (probability = 0)
             # i.e. ending qeuue has fewer people than before (and it was not the one served) or was served and drops by more than 1 person
             # or a random queue adds more than one person to it
-            if (end_state[q] < start_state[q] and q != a) or (end_state[q] < start_state[q] - 1) or (end_state[q] > start_state[q] + 1):
+            if (end_state[q] < start_state[q] and q != action) or (end_state[q] < start_state[q] - 1) or (end_state[q] > start_state[q] + 1):
 
                 # print a debug message because this would probably indicate a bug in the code
                 print("transition from state", start_state, "to state", end_state, "is not possible")
@@ -130,17 +130,24 @@ class SHOP:
 
 if __name__ == '__main__':
 
-    # TODO -- Make the command line arguments more modular...
-    queue_capacity = int(sys.argv[1])
-    num_queues = int(sys.argv[2])
-    scoop_cost = int(sys.argv[3])
-    leave_loss = abs(int(sys.argv[4]))
-    queue_probs = np.array([float(sys.argv[x]) for x in range(5, len(sys.argv)-1)])
-    iter_type = int(sys.argv[len(sys.argv)-1]) # policy or value iteration
+    # no arguments given, use default settings for project
+    if (len(sys.argv) == 1):
+        shop = SHOP()
 
-    # Do error checking here...
+    # else use custom settings from command line
+    else:
+        # TODO -- Make the command line arguments more modular...
+        queue_capacity = int(sys.argv[1])
+        num_queues = int(sys.argv[2])
+        scoop_cost = int(sys.argv[3])
+        leave_loss = abs(int(sys.argv[4]))
+        queue_probs = np.array([float(sys.argv[x]) for x in range(5, len(sys.argv)-1)])
+        iter_type = int(sys.argv[len(sys.argv)-1]) # policy or value iteration
 
-    shop = SHOP(queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs)
+        # Do error checking here...
+
+        shop = SHOP(queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs)
+    
     shop.print_shop()
 
 
