@@ -38,6 +38,17 @@ class SHOP:
         # the actions that can be taken are serving each queue
         self.actions = [i for i in range(0, num_queues)]
 
+        # initialize the policy (probability of taking an action in a state)
+        self.policy = {}
+        for s in self.state_values:
+            # p is array of probabilities of taking each action in current state
+            # initialize each probability to 0
+            p = [0 for i in range(0, len(self.actions))]
+            
+            # default policy is initialized to serve the longest queue (makes more intuitive sense than random)
+            longest_queue = s.index(max(s))
+            p[longest_queue] = 1
+
         return
 
     def print_shop(self):
@@ -124,7 +135,7 @@ class SHOP:
     # Alex
     def value_iteration(self):
         # iterate some arbitrarily large number of times (for now)
-        for i in range(0, 1000):
+        for i in range(0, 10000):
             # for each state
             for s in self.state_values:
                 return_per_action = []
@@ -138,9 +149,15 @@ class SHOP:
                         expected_reward += p * (r + v2 * self.discount_factor)
                     return_per_action.append(expected_reward)
                 self.state_values[s] = max(return_per_action)
+                
+                new_policy = [0 for i in range(0, len(self.actions))]
+                best_action = return_per_action.index(max(return_per_action))
+                new_policy[best_action] = 1
+                self.policy[s] = new_policy 
         
         for s, v in self.state_values.items():
-            print(s, ": ", v)
+            p = self.policy[s]
+            print(s, ": ", v, "action = ", p.index(max(p)))
 
         return
 
