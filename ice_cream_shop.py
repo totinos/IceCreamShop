@@ -49,6 +49,9 @@ class SHOP:
             longest_queue = s.index(max(s))
             p[longest_queue] = 1
 
+        # Need an initialized policy for comparison in policy iteration
+        self.dummy_policy = self.policy
+
         return
 
     def print_shop(self):
@@ -255,6 +258,26 @@ class SHOP:
             self.policy[s] = new_policy
 
         return
+
+
+    #######################################################
+    #                                                     #
+    #  Function to iterate through the policy evaluation  #
+    #  and policy improvement steps of policy iteration   #
+    #                                                     #
+    #######################################################
+    def policy_iteration(self):
+
+        policy_stable = False
+        while (not policy_stable):
+            self.evaluate_policy()
+            self.update_policy()
+            if (self.dummy_policy == self.policy)
+                policy_stable = True
+            self.dummy_policy = self.policy.copy()
+        return
+
+            
                 
 
 if __name__ == '__main__':
