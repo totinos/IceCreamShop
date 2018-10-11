@@ -161,7 +161,7 @@ class SHOP:
         # iterate some arbitrarily large number of times (for now)
         for i in range(0, 10000):
             # for each state
-            for s in self.state_values.key():
+            for s in self.state_values:
                 return_per_action = []
                 for a in self.actions:
                     transitions = self.state_transitions(s, a)
@@ -197,11 +197,13 @@ class SHOP:
 
         # Loop until the difference between the current state value and the
         # next update is less than the given error value
+
+        delta = error + 1
         while(delta > error):
             delta = 0
 
             # Enumerate all of the states
-            for s in self.state_values.key():
+            for s in self.state_values:
                 return_per_action = []
                 for a in self.actions:
                     transitions = self.state_transitions(s, a)
@@ -216,7 +218,7 @@ class SHOP:
                 state_value_update = max(return_per_action)
 
                 # Update the error
-                if (delta < abs(state_value_update - self.state_values[s]))
+                if (delta < abs(state_value_update - self.state_values[s])):
                     delta = abs(state_value_update - self.state_values[s])
                 self.state_values[s] = max(return_per_action)
         return
@@ -230,7 +232,7 @@ class SHOP:
     def update_policy(self):
         
         # Enumerate all of the states
-        for s in self.state_values.key():
+        for s in self.state_values:
             return_per_action = []
             for a in self.actions:
                 transitions = self.state_transitions(s, a)
@@ -272,12 +274,15 @@ class SHOP:
         while (not policy_stable):
             self.evaluate_policy()
             self.update_policy()
-            if (self.dummy_policy == self.policy)
+            if (self.dummy_policy == self.policy):
                 policy_stable = True
             self.dummy_policy = self.policy.copy()
-        return
 
-            
+        for s, v in self.state_values.items():
+            p = self.policy[s]
+            print(s, ": ", v, "action = ", p.index(max(p)))
+        
+        return
                 
 
 if __name__ == '__main__':
@@ -285,6 +290,11 @@ if __name__ == '__main__':
     # no arguments given, use default settings for project
     if (len(sys.argv) == 1):
         shop = SHOP()
+
+    # If one argument is given, assume it specifies value/policy iteration
+    elif (len(sys.argv) == 2):
+        shop = SHOP()
+        iter_type = int(sys.argv[1])
 
     # else use custom settings from command line
     else:
@@ -300,7 +310,16 @@ if __name__ == '__main__':
 
         shop = SHOP(queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs)
     
-    shop.print_shop()
-    shop.print_transitions()
-    shop.value_iteration()
+    #shop.print_shop()
+    #shop.print_transitions()
+
+    if (iter_type == 1):
+        print('Value Iteration:')
+        shop.value_iteration()
+    else:
+        print('Policy Iteration:')
+        shop.policy_iteration()
+
+    print('FINISHED')
+    exit()
 
