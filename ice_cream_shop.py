@@ -186,8 +186,6 @@ class SHOP:
         return
 
 
-    ############################# Sam ###############################
-
     #######################################################
     #                                                     #
     #  Function to evaluate the current policy            #
@@ -290,6 +288,7 @@ if __name__ == '__main__':
     # no arguments given, use default settings for project
     if (len(sys.argv) == 1):
         shop = SHOP()
+        iter_type = 1 # By default run value iteration
 
     # If one argument is given, assume it specifies value/policy iteration
     elif (len(sys.argv) == 2):
