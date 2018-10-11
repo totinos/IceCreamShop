@@ -182,8 +182,78 @@ class SHOP:
 
         return
 
-    # Sam
-    def policy_iteration(self):
+
+    ############################# Sam ###############################
+
+    #######################################################
+    #                                                     #
+    #  Function to evaluate the current policy            #
+    #                                                     #
+    #######################################################
+    def evaluate_policy(self, error=1e-4):
+
+        # Loop until the difference between the current state value and the
+        # next update is less than the given error value
+        while(delta > error):
+            delta = 0
+
+            # Enumerate all of the states
+            for s in self.state_values.key():
+                return_per_action = []
+                for a in self.actions:
+                    transitions = self.state_transitions(s, a)
+                    expected_reward = 0
+                    for s2 in transitions:
+                        p = self.transition_probability(s, s2, a)
+                        r = self.reward(s, a)
+                        v = self.state_values[s2]
+                        expected_reward += p*(r + v*(self.discount_factor))
+                    return_per_action.append(expected_reward)
+                
+                state_value_update = max(return_per_action)
+
+                # Update the error
+                if (delta < abs(state_value_update - self.state_values[s]))
+                    delta = abs(state_value_update - self.state_values[s])
+                self.state_values[s] = max(return_per_action)
+        return
+        
+
+    #######################################################
+    #                                                     #
+    #  Function to update the policy based on evaluation  #
+    #                                                     #
+    #######################################################
+    def update_policy(self):
+        
+        # Enumerate all of the states
+        for s in self.state_values.key():
+            return_per_action = []
+            for a in self.actions:
+                transitions = self.state_transitions(s, a)
+                expected_reward = 0
+                for s2 in transitions:
+                    p = self.transition_probability(s, s2, a)
+                    r = self.reward(s, a)
+                    v = self.state_values[s2]
+                    expected_reward += p*(r + v*(self.discount_factor))
+                return_per_action.append(expected_reward)
+
+            # Determine all of the best actions to take (If we want to consider more than one)
+           # best_moves = []*len(self.actions)
+           # for a in range(0, len(self.actions)):
+           #     if return_per_action[a] == max(return_per_action):
+           #         best_moves[a] = 1
+           #     else:
+           #         best_moves[a] = 0
+           # num_moves = sum(best_moves)
+
+            # Update the policy for state 's' based on the estimated reward values
+            new_policy = [0 for i in range(0, len(self.actions))]
+            best_action = return_per_action.index(max(return_per_action))
+            new_policy[best_action] = 1
+            self.policy[s] = new_policy
+
         return
                 
 
