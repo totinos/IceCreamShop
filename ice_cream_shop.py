@@ -32,7 +32,7 @@ class SHOP:
             for q in range(0, num_queues):
                 queue_lengths[q] = i % (queue_capacity+1)
                 i = int(i / (queue_capacity+1))
-            print(queue_lengths)
+#            print(queue_lengths)
             self.state_values[tuple(queue_lengths)] = 0        # state value initialized to 0
 
         # the actions that can be taken are serving each queue
@@ -311,6 +311,11 @@ if __name__ == '__main__':
     
     #shop.print_shop()
     #shop.print_transitions()
+
+    #state = (1,7)
+    #print(state)
+    #print(shop.state_transitions(state))
+    #exit()
 
     if (iter_type == 1):
         print('Value Iteration:')
