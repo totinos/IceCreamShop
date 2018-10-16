@@ -58,20 +58,11 @@ class SHOP:
     ###########################################################
     def print_shop(self):
         
-        print()
         print('-------------------------------')
-        print('POLICY:')
+        print('STATE: STATE VALUE -- POLICY')
         print('-------------------------------')
-        for p in self.policy:
-            print('{0}: {1}'.format(p, self.policy[p]))
-
-        print()
-        print('-------------------------------')
-        print('STATE VALUES:')
-        print('-------------------------------')
-        for s in self.state_values:
-            print('{0}: {1}'.format(s, self.state_values[s]))
-        
+        for s in self.policy:
+            print('{0}: {1:6f} -- {2}'.format(s, self.state_values[s], self.policy[s]))
         print('-------------------------------')
         return
 
@@ -235,11 +226,7 @@ class SHOP:
 
             iter_count += 1
 
-        for s, v in self.state_values.items():
-            p = self.policy[s]
-            #print(s, ': ', v, 'action = ', p.index(max(p)))
-            print(s, ': ', v, 'action = ', np.argmax(p))
-        print('Iterations', iter_count)
+        print('Iterations:', iter_count)
         return
 
 
@@ -268,7 +255,7 @@ class SHOP:
                 self.state_values[s] = state_value_update
 
             iter_count += 1
-        print('Iterations', iter_count)
+        print('Iterations:', iter_count)
         return
 
 
@@ -310,10 +297,6 @@ class SHOP:
                 policy_stable = True
             self.dummy_policy = self.policy.copy()
 
-        for s, v in self.state_values.items():
-            p = self.policy[s]
-            print(s, ": ", v, "action = ", p.index(max(p)))
-
         return
 
 
@@ -336,6 +319,7 @@ if __name__ == '__main__':
 
     # Run value iteration
     shop.value_iteration()
+    shop.print_shop()
     
     #shop2 = SHOP(8, 2, 1, 5, [0.3, 0.6], 0.9)
     #shop2.policy_iteration()
