@@ -50,6 +50,9 @@ class SHOP:
         # Need an initialized policy for comparison in policy iteration
         self.dummy_policy = self.policy
 
+        # A list to store the policies at all iterations
+        self.policy_evolution = []
+
         return
 
 
@@ -71,7 +74,7 @@ class SHOP:
     ###########################################################
     #                                                         #
     #  Plots the value function for each state as the number  #
-    #  people in one queue vs. the number of 
+    #  people in one queue vs. the number of (only for 2d)    #
     #                                                         #
     ###########################################################
     def plot_value_function(self):
@@ -97,7 +100,7 @@ class SHOP:
 
     ###########################################################
     #                                                         #
-    #  Plots the policy for each queue                        #
+    #  Plots the policy for each queue (only works for 2d)    #
     #                                                         #
     ###########################################################
     def plot_policy(self):
@@ -252,6 +255,7 @@ class SHOP:
         while (delta > error):
             delta = 0
 
+            self.policy_evolution.append(self.policy.copy())
             #if (iter_count%30 == 0):
             #    self.print_shop()
 
@@ -269,6 +273,7 @@ class SHOP:
                 # Policy update giving equal weight to equal actions
                 new_policy = [0 for i in range(0, len(self.actions))]
                 return_per_action = np.array(return_per_action)
+                return_per_action = np.around(return_per_action, decimals=4)
                 best_actions = (return_per_action == np.amax(return_per_action))
                 num_best = np.sum(best_actions)
                 for a in self.actions:
@@ -287,6 +292,7 @@ class SHOP:
             iter_count += 1
 
         print('Iterations:', iter_count)
+        #print(self.policy_evolution)
         return
 
 
@@ -338,6 +344,8 @@ class SHOP:
             new_policy[best_action] = 1
             self.policy[s] = new_policy
 
+        self.policy_evolution.append(self.policy.copy())
+
         return
 
 
@@ -375,4 +383,53 @@ if __name__ == '__main__':
     shop.print_shop()
     shop.plot_value_function()
     shop.plot_policy()
+
+    
+    # This part of the script shows the improvement of the policy over time.
+    # It simulates the problem for 'n' time steps and plots the total reward
+    # accumulated using each policy
+
+    n = 100
+    profits = np.zeros(len(shop.policy_evolution))
+    policy_count = 0
+    for p in shop.policy_evolution:
+
+        if (policy_count == len(shop.policy_evolution)):
+            break
+
+        queues = [0, 0]
+
+        # Determine bernoulli distributions for the queues
+        q1 = np.random.binomial(1, 0.3, n)
+        q2 = np.random.binomial(1, 0.6, n)
+        for t in range(0, n):
+
+            # Get action from policy 'p'
+            state = tuple(queues)
+            action = np.argmax(p[state])
+
+            # If the queue is not empty, someone was served
+            if (queues[action] != 0):
+                profits[policy_count] += 1
+                queues[action] -= 1
+
+            # Add new people according to bernoulli process
+            queues[0] += q1[t]
+            queues[1] += q2[t]
+
+            # Check for overflow and add negative reward
+            if (queues[0] > 8):
+                profits[policy_count] -= 5
+                queues[0] -= 1
+            if (queues[1] > 8):
+                profits[policy_count] -= 5
+                queues[1] -= 1
+
+        policy_count += 1
+
+    t = np.array([x for x in range(0, len(shop.policy_evolution))])
+    fig = plt.figure()
+    plt.plot(t, profits)
+    plt.savefig('profits.png')
+
     #plt.show()
