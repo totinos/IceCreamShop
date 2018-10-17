@@ -7,6 +7,8 @@
 
 import sys
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 
 class SHOP:
@@ -58,13 +60,67 @@ class SHOP:
     ###########################################################
     def print_shop(self):
         
-        print('-------------------------------')
-        print('STATE: STATE VALUE -- POLICY')
-        print('-------------------------------')
+        print('-------------------------------------------')
+        print('STATE: STATE VALUE -- BEST ACTION -- POLICY')
+        print('-------------------------------------------')
         for s in self.policy:
-            print('{0}: {1:6f} -- {2}'.format(s, self.state_values[s], self.policy[s]))
-        print('-------------------------------')
+            print('{0}: {1:6f} -- {2} -- {3}'.format(s, self.state_values[s], np.argmax(self.policy[s]), self.policy[s]))
+        print('-------------------------------------------')
         return
+
+    ###########################################################
+    #                                                         #
+    #  Plots the value function for each state as the number  #
+    #  people in one queue vs. the number of 
+    #                                                         #
+    ###########################################################
+    def plot_value_function(self):
+        
+        val = np.zeros((self.queue_capacity+1, self.queue_capacity+1))
+        for i in range(len(val)):
+            for j in range(len(val[i])):
+                state = (i, j)
+                val[i][j] = self.state_values[state]
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        x_data, y_data = np.meshgrid(np.arange(val.shape[1]), np.arange(val.shape[0]))
+        x_data = x_data.flatten()
+        y_data = y_data.flatten()
+        z_data = val.flatten()
+        ax.bar3d(x_data, y_data, np.zeros(len(z_data)), 1, 1, z_data)
+        ax.set_title('Optimal Value Function for 2 Queues of 8 Capacity')
+        ax.set_xlabel('Size of Queue 1')
+        ax.set_ylabel('Size of Queue 2')
+        ax.set_zlabel('Value of State (x, y)')
+        plt.savefig('ValueFunction.png')
+
+    ###########################################################
+    #                                                         #
+    #  Plots the policy for each queue                        #
+    #                                                         #
+    ###########################################################
+    def plot_policy(self):
+        
+        y = np.zeros((self.queue_capacity+1, self.queue_capacity+1))
+        for i in range(len(y)):
+            for j in range(len(y[i])):
+                state = (i, j)
+                y[i][j] = np.argmax(self.policy[state])
+
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        x_data, y_data = np.meshgrid(np.arange(y.shape[1]), np.arange(y.shape[0]))
+        x_data = x_data.flatten()
+        y_data = y_data.flatten()
+        z_data = y.flatten()
+        ax.bar3d(x_data, y_data, np.zeros(len(z_data)), 1, 1, z_data)
+        ax.set_title('Optimal Policy for 2 Queues of 8 Capacity')
+        ax.set_xlabel('Size of Queue 1')
+        ax.set_ylabel('Size of Queue 2')
+        ax.set_zlabel('Best Action for State (x, y)')
+        plt.savefig('Policy.png')
 
 
     ###########################################################
@@ -195,6 +251,10 @@ class SHOP:
         iter_count = 0
         while (delta > error):
             delta = 0
+
+            #if (iter_count%30 == 0):
+            #    self.print_shop()
+
             for s in self.state_values:
                 return_per_action = []
                 for a in self.actions:
@@ -307,20 +367,12 @@ class SHOP:
 ###########################################################
 if __name__ == '__main__':
 
-    shop = SHOP(8, 2, 1, 5, [0.3, 0.6], 0.9)
+    # Create a SHOP object
+    shop = SHOP(8, 2, 1, 5, [0.6, 0.3], 0.9)
     
-    #shop.print_shop()
-
-    # Statements to help with debugging and testing
-    #state = (8,7)
-    #print(state)
-    #print(shop.get_state_transitions(state, 1))
-    #print(shop.take_action(state, 1))
-
     # Run value iteration
     shop.value_iteration()
     shop.print_shop()
-    
-    #shop2 = SHOP(8, 2, 1, 5, [0.3, 0.6], 0.9)
-    #shop2.policy_iteration()
-
+    shop.plot_value_function()
+    shop.plot_policy()
+    #plt.show()
