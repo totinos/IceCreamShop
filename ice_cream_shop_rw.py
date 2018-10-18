@@ -71,6 +71,7 @@ class SHOP:
         print('-------------------------------------------')
         return
 
+
     ###########################################################
     #                                                         #
     #  Plots the value function for each state as the number  #
@@ -97,33 +98,6 @@ class SHOP:
         ax.set_ylabel('Size of Queue 2')
         ax.set_zlabel('Value of State (x, y)')
         plt.savefig('ValueFunction.png')
-
-    ###########################################################
-    #                                                         #
-    #  Plots the policy for each queue (only works for 2d)    #
-    #                                                         #
-    ###########################################################
-    def plot_policy(self):
-        
-        y = np.zeros((self.queue_capacity+1, self.queue_capacity+1))
-        for i in range(len(y)):
-            for j in range(len(y[i])):
-                state = (i, j)
-                y[i][j] = np.argmax(self.policy[state])
-
-        
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        x_data, y_data = np.meshgrid(np.arange(y.shape[1]), np.arange(y.shape[0]))
-        x_data = x_data.flatten()
-        y_data = y_data.flatten()
-        z_data = y.flatten()
-        ax.bar3d(x_data, y_data, np.zeros(len(z_data)), 1, 1, z_data)
-        ax.set_title('Optimal Policy for 2 Queues of 8 Capacity')
-        ax.set_xlabel('Size of Queue 1')
-        ax.set_ylabel('Size of Queue 2')
-        ax.set_zlabel('Best Action for State (x, y)')
-        plt.savefig('Policy.png')
 
 
     ###########################################################
@@ -232,8 +206,6 @@ class SHOP:
         transitions = self.get_state_transitions(start_state, action)
         expected_reward = 0
         r = self.reward(start_state, action)
-        # print('leave_loss:', self.leave_loss)
-        # print('reward:', r)
         for end_state in transitions:
             p = self.get_transition_probability(start_state, end_state, action)
             v = self.state_values[end_state]
@@ -375,19 +347,18 @@ class SHOP:
 ###########################################################
 if __name__ == '__main__':
 
-    # Plotting is only available for the example setup
-    plot_value_function = 0
-
     # Doing the example setup with value iteration by default
     if (len(sys.argv) == 1):
+        num_queues = 2
+        queue_probs = [0.3, 0.6]
         iter_type = 0
-        plot_value_function = 1
         shop = SHOP()
 
     # If one arg is provided, assume it specifies value/policy iteration
     elif (len(sys.argv) == 2):
+        num_queues = 2
+        queue_probs = [0.3, 0.6]
         iter_type = int(sys.argv[1])
-        plot_value_function = 1
         shop = SHOP()
 
     # Else use command line setup Dr. Sadovnik specifies in the writeup
@@ -396,7 +367,7 @@ if __name__ == '__main__':
         num_queues = int(sys.argv[2])
         scoop_cost = int(sys.argv[3])
         leave_loss = abs(int(sys.argv[4]))
-        queue_probs = np.array([float(sys.argv[x]) for x in range(5, len(sys.argv)-1)])
+        queue_probs = [float(sys.argv[x]) for x in range(5, len(sys.argv)-1)]
         iter_type = int(sys.argv[len(sys.argv)-1])
         shop = SHOP(queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs)
 
@@ -405,18 +376,19 @@ if __name__ == '__main__':
 
     # Run value iteration or policy iteration depending on value of 'iter_type'
     if (iter_type == 0):
-        shop.value_iteration()
+        print('Performing Value Iteration')
+        shop.value_iteration(1e-21)
     else:
+        print('Performing Policy Iteration')
         shop.policy_iteration()
 
     # Plot the value function only if the problem is 2-dimensional
-    if (plot_value_function == 1):
+    if (num_queues == 2):
         shop.plot_value_function()
 
     # Print the state of the ice cream shop as output
     shop.print_shop()
 
-    exit()
 
 
 
@@ -426,12 +398,6 @@ if __name__ == '__main__':
     #shop = SHOP(8, 2, 1, 5, [0.6, 0.3], 0.9)
     #shop = SHOP(8, 2, 1, 5, [1, 0.3], 0.9)
     
-    # Run value iteration
-    #shop.value_iteration()
-    #shop.print_shop()
-    #shop.plot_value_function()
-    #shop.plot_policy()
-
     
     # This part of the script shows the improvement of the policy over time.
     # It simulates the problem for 'n' time steps and plots the total reward
@@ -445,11 +411,12 @@ if __name__ == '__main__':
         if (policy_count == len(shop.policy_evolution)):
             break
 
-        queues = [0, 0]
+        queues = np.zeros(num_queues)
+        arrivals = np.zeros((num_queues, n), dtype=int)
+        for q in range(num_queues):
+            arrivals[q] = np.random.binomial(1, queue_probs[q], n)
 
-        # Determine bernoulli distributions for the queues
-        q1 = np.random.binomial(1, 0.3, n)
-        q2 = np.random.binomial(1, 0.6, n)
+        # Simulate n time steps
         for t in range(0, n):
 
             # Get action from policy 'p'
@@ -461,26 +428,21 @@ if __name__ == '__main__':
                 profits[policy_count] += 1
                 queues[action] -= 1
 
-            # Add new people according to bernoulli process
-            queues[0] += q1[t]
-            queues[1] += q2[t]
-
-            # Check for overflow and add negative reward
-            if (queues[0] > 8):
-                profits[policy_count] -= 5
-                queues[0] -= 1
-            if (queues[1] > 8):
-                profits[policy_count] -= 5
-                queues[1] -= 1
+            # Add new people according to bernoulli processes
+            for q in range(num_queues):
+                if (queues[q] == 8):
+                    profits[policy_count] -= 5
+                else:
+                    queues[q] += arrivals[q][t]
 
         policy_count += 1
 
-    t = np.array([x for x in range(0, len(shop.policy_evolution))])
+    x = np.array([dx for dx in range(0, len(shop.policy_evolution))])
     fig = plt.figure()
-    plt.plot(t, profits)
+    plt.plot(x, profits)
     plt.xlabel('Iteration')
     plt.ylabel('Reward After 100 Time Tteps')
     plt.title('Policy Improvement Over Time')
-    plt.savefig('profits.png')
+    plt.savefig('Profits.png')
 
     #plt.show()
