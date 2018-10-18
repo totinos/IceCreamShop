@@ -256,7 +256,7 @@ class SHOP:
             delta = 0
 
             self.policy_evolution.append(self.policy.copy())
-            #if (iter_count%30 == 0):
+            #if (iter_count%10 == 0):
             #    self.print_shop()
 
             for s in self.state_values:
@@ -375,14 +375,62 @@ class SHOP:
 ###########################################################
 if __name__ == '__main__':
 
+    # Plotting is only available for the example setup
+    plot_value_function = 0
+
+    # Doing the example setup with value iteration by default
+    if (len(sys.argv) == 1):
+        iter_type = 0
+        plot_value_function = 1
+        shop = SHOP()
+
+    # If one arg is provided, assume it specifies value/policy iteration
+    elif (len(sys.argv) == 2):
+        iter_type = int(sys.argv[1])
+        plot_value_function = 1
+        shop = SHOP()
+
+    # Else use command line setup Dr. Sadovnik specifies in the writeup
+    else:
+        queue_capacity = int(sys.argv[1])
+        num_queues = int(sys.argv[2])
+        scoop_cost = int(sys.argv[3])
+        leave_loss = abs(int(sys.argv[4]))
+        queue_probs = np.array([float(sys.argv[x]) for x in range(5, len(sys.argv)-1)])
+        iter_type = int(sys.argv[len(sys.argv)-1])
+        shop = SHOP(queue_capacity, num_queues, scoop_cost, leave_loss, queue_probs)
+
+
+    # TODO -- Add a policy update selector to these functions?
+
+    # Run value iteration or policy iteration depending on value of 'iter_type'
+    if (iter_type == 0):
+        shop.value_iteration()
+    else:
+        shop.policy_iteration()
+
+    # Plot the value function only if the problem is 2-dimensional
+    if (plot_value_function == 1):
+        shop.plot_value_function()
+
+    # Print the state of the ice cream shop as output
+    shop.print_shop()
+
+    exit()
+
+
+
+
     # Create a SHOP object
-    shop = SHOP(8, 2, 1, 5, [0.6, 0.3], 0.9)
+    #shop = SHOP(8, 3, 1, 5, [0.6, 0.3, 0.9], 0.9)
+    #shop = SHOP(8, 2, 1, 5, [0.6, 0.3], 0.9)
+    #shop = SHOP(8, 2, 1, 5, [1, 0.3], 0.9)
     
     # Run value iteration
-    shop.value_iteration()
-    shop.print_shop()
-    shop.plot_value_function()
-    shop.plot_policy()
+    #shop.value_iteration()
+    #shop.print_shop()
+    #shop.plot_value_function()
+    #shop.plot_policy()
 
     
     # This part of the script shows the improvement of the policy over time.
@@ -430,6 +478,9 @@ if __name__ == '__main__':
     t = np.array([x for x in range(0, len(shop.policy_evolution))])
     fig = plt.figure()
     plt.plot(t, profits)
+    plt.xlabel('Iteration')
+    plt.ylabel('Reward After 100 Time Tteps')
+    plt.title('Policy Improvement Over Time')
     plt.savefig('profits.png')
 
     #plt.show()
