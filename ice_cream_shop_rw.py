@@ -6,6 +6,7 @@
 ###########################################################
 
 import sys
+import copy
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -48,7 +49,7 @@ class SHOP:
             self.policy[s] = p
 
         # Need an initialized policy for comparison in policy iteration
-        self.dummy_policy = self.policy
+        self.dummy_policy = copy.deepcopy(self.policy)
 
         # A list to store the policies at all iterations
         self.policy_evolution = []
@@ -311,9 +312,20 @@ class SHOP:
                 return_per_action.append(self.take_action(s, a))
             
             # Completely greedy policy update
+            #new_policy = [0 for i in range(0, len(self.actions))]
+            #best_action = return_per_action.index(max(return_per_action))
+            #new_policy[best_action] = 1
+            #self.policy[s] = new_policy
+
+            # Policy update giving equal weight to equal actions
             new_policy = [0 for i in range(0, len(self.actions))]
-            best_action = return_per_action.index(max(return_per_action))
-            new_policy[best_action] = 1
+            return_per_action = np.array(return_per_action)
+            return_per_action = np.around(return_per_action, decimals=4)
+            best_actions = (return_per_action == np.amax(return_per_action))
+            num_best = np.sum(best_actions)
+            for a in self.actions:
+                if (best_actions[a] == 1):
+                    new_policy[a] = 1 / num_best
             self.policy[s] = new_policy
 
         self.policy_evolution.append(self.policy.copy())
@@ -331,11 +343,19 @@ class SHOP:
         
         policy_stable = False
         while (not policy_stable):
+            self.policy_evolution.append(copy.deepcopy(self.policy))
             self.evaluate_policy()
             self.update_policy()
-            if (self.dummy_policy == self.policy):
-                policy_stable = True
-            self.dummy_policy = self.policy.copy()
+
+            policy_stable = True
+            for s1, s2 in zip(self.dummy_policy, self.policy):
+                if (not np.array_equal(self.dummy_policy[s1],  self.policy[s2])):
+                    policy_stable = False
+                    break
+
+            #if (self.dummy_policy == self.policy):
+            #    policy_stable = True
+            self.dummy_policy = copy.deepcopy(self.policy)  
 
         return
 
@@ -347,8 +367,11 @@ class SHOP:
 ###########################################################
 if __name__ == '__main__':
 
+    VERBOSE = 1
+
     # Doing the example setup with value iteration by default
     if (len(sys.argv) == 1):
+        queue_capacity = 8
         num_queues = 2
         queue_probs = [0.3, 0.6]
         iter_type = 0
@@ -356,6 +379,7 @@ if __name__ == '__main__':
 
     # If one arg is provided, assume it specifies value/policy iteration
     elif (len(sys.argv) == 2):
+        queue_capacity = 8
         num_queues = 2
         queue_probs = [0.3, 0.6]
         iter_type = int(sys.argv[1])
@@ -386,19 +410,9 @@ if __name__ == '__main__':
     if (num_queues == 2):
         shop.plot_value_function()
 
-    # Print the state of the ice cream shop as output
-    shop.print_shop()
+    if (VERBOSE):
+        shop.print_shop()
 
-
-
-
-
-    # Create a SHOP object
-    #shop = SHOP(8, 3, 1, 5, [0.6, 0.3, 0.9], 0.9)
-    #shop = SHOP(8, 2, 1, 5, [0.6, 0.3], 0.9)
-    #shop = SHOP(8, 2, 1, 5, [1, 0.3], 0.9)
-    
-    
     # This part of the script shows the improvement of the policy over time.
     # It simulates the problem for 'n' time steps and plots the total reward
     # accumulated using each policy
@@ -411,7 +425,7 @@ if __name__ == '__main__':
         if (policy_count == len(shop.policy_evolution)):
             break
 
-        queues = np.zeros(num_queues)
+        queues = np.zeros(num_queues, dtype=int)
         arrivals = np.zeros((num_queues, n), dtype=int)
         for q in range(num_queues):
             arrivals[q] = np.random.binomial(1, queue_probs[q], n)
@@ -430,13 +444,14 @@ if __name__ == '__main__':
 
             # Add new people according to bernoulli processes
             for q in range(num_queues):
-                if (queues[q] == 8):
+                if (queues[q] == queue_capacity):
                     profits[policy_count] -= 5
                 else:
                     queues[q] += arrivals[q][t]
 
         policy_count += 1
 
+    # Plot the performance under the policies at each iteration
     x = np.array([dx for dx in range(0, len(shop.policy_evolution))])
     fig = plt.figure()
     plt.plot(x, profits)
