@@ -1,7 +1,9 @@
 
 ###########################################################
 #                                                         #
-#  Implements the environment (theoretically...)          #
+#  Implements the environment and uses the Dynamic        #
+#  Programming reinforcement learning algorithm to learn  #
+#  how best to serve queues in an ice cream shop.         #
 #                                                         #
 ###########################################################
 
@@ -265,7 +267,6 @@ class SHOP:
             iter_count += 1
 
         print('Iterations:', iter_count)
-        #print(self.policy_evolution)
         return
 
 
@@ -353,8 +354,6 @@ class SHOP:
                     policy_stable = False
                     break
 
-            #if (self.dummy_policy == self.policy):
-            #    policy_stable = True
             self.dummy_policy = copy.deepcopy(self.policy)  
 
         return
@@ -362,12 +361,15 @@ class SHOP:
 
 ###########################################################
 #                                                         #
-#  MAIN --                                                #
+#  MAIN -- Runs the reinforcement learning algorithms and #
+#          then simulates the optimal policy over 'n'     #
+#          time steps to see how the policy has improved  ##
 #                                                         #
 ###########################################################
 if __name__ == '__main__':
 
-    VERBOSE = 1
+    VERBOSE = 1  # prints the state of the shop
+    n = 100      # number of time steps to simulate
 
     # Doing the example setup with value iteration by default
     if (len(sys.argv) == 1):
@@ -417,7 +419,6 @@ if __name__ == '__main__':
     # It simulates the problem for 'n' time steps and plots the total reward
     # accumulated using each policy
 
-    n = 100
     profits = np.zeros(len(shop.policy_evolution))
     policy_count = 0
     for p in shop.policy_evolution:
